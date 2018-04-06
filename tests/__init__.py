@@ -1,5 +1,5 @@
 import sys
-import os.path
+from os.path import join, dirname
 
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, join(dirname(__file__), '..'))

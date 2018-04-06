@@ -18,11 +18,17 @@ TEST_DATA = [
      b'o\x96_\xfa\xccH\xe6\x87\xe0\xd3NJ\x8a\x86\x83*\x8dl\xfc\xf0{\xf1#\xb76')
 ]
 
+CUSTOM_CHARSET = b'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz'
+CUSTOM_CHARSET_DATA = [
+    (b'rDTXLQ7ZKZVKz33zJbHjgVShjsBnqMBhmN',
+     b'\x00\x88\xa5\xa5|\x82\x9f@\xf2^\xa83\x85\xbb\xdel=\x8bL\xa0\x82\xedC\x86A')
+]
+
 
 class Base58Tests(unittest.TestCase):
     def test_base(self):
         """Assert that BASE is equal to 58"""
-        self.assertEqual(58, base58check.BASE)
+        self.assertEqual(58, len(base58check.DEFAULT_CHARSET))
 
     def test_encoding_text_raises_typeerror(self):
         """Assert encoding text (nonbinary) raises TypeError"""
@@ -30,23 +36,37 @@ class Base58Tests(unittest.TestCase):
             base58check.b58encode('test text')
 
     def test_encoding(self):
-        """Assert correct encoding and results in a bytestring"""
+        """Assert correct encoding and return type"""
         for encoded, raw in TEST_DATA:
             result = base58check.b58encode(raw)
             self.assertEqual(result, encoded)
             self.assertIsInstance(result, bytes)
 
     def test_decoding(self):
-        """Assert correct decoding from bytes and results in a bytestring"""
+        """Assert correct decoding and return type from bytes"""
         for encoded, raw in TEST_DATA:
             result = base58check.b58decode(encoded)
             self.assertEqual(result, raw)
             self.assertIsInstance(result, bytes)
 
     def test_decoding_from_unicode(self):
-        """Assert correct decoding from text and results in a bytestring """
+        """Assert correct decoding and return type from text"""
         for encoded, raw in TEST_DATA:
             result = base58check.b58decode(encoded.decode())
+            self.assertEqual(result, raw)
+            self.assertIsInstance(result, bytes)
+
+    def test_custom_charset_encoding(self):
+        """Assert correct encoding and return type for custom character set"""
+        for encoded, raw in CUSTOM_CHARSET_DATA:
+            result = base58check.b58encode(raw, charset=CUSTOM_CHARSET)
+            self.assertEqual(result, encoded)
+            self.assertIsInstance(result, bytes)
+
+    def test_custom_charset_decoding(self):
+        """Assert correct decoding and return type for custom character set"""
+        for encoded, raw in CUSTOM_CHARSET_DATA:
+            result = base58check.b58decode(encoded, charset=CUSTOM_CHARSET)
             self.assertEqual(result, raw)
             self.assertIsInstance(result, bytes)
 

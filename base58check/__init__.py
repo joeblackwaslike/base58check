@@ -36,15 +36,16 @@ from hashlib import sha256
 from collections import deque
 
 
-CHARSET = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-BASE = len(CHARSET)
+DEFAULT_CHARSET = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+# BASE = len(CHARSET)
 
 
-def b58encode(val):
+def b58encode(val, charset=DEFAULT_CHARSET):
     """Encode input to base58check encoding.
 
-    :param bytes val: The value to base58check encode
-    :return: the encoded bytestring
+    :param bytes val: The value to base58check encode.
+    :param bytes charset: (optional) The character set to use for encoding.
+    :return: the encoded bytestring.
     :rtype: bytes
     :raises: TypeError: if `val` is not bytes.
 
@@ -55,13 +56,13 @@ def b58encode(val):
       b'\x00v\x80\xad\xec\x8e\xab\xca\xba\xc6v\xbe\x9e\x83\x85J\xde\x0b\xd2,\xdb\x0b\xb9`\xde'
     """
 
-    def _b58encode_int(int_, default=b'1'):
+    def _b58encode_int(int_, default=bytes([charset[0]])):
         if not int_ and default:
             return default
         output = b''
         while int_:
-            int_, idx = divmod(int_, BASE)
-            output = CHARSET[idx:idx+1] + output
+            int_, idx = divmod(int_, base)
+            output = charset[idx:idx+1] + output
         return output
 
     if not isinstance(val, bytes):
@@ -69,6 +70,14 @@ def b58encode(val):
             "a bytes-like object is required, not '%s', "
             "use .encode('ascii') to encode unicode strings" %
             type(val).__name__)
+
+    if isinstance(charset, str):
+        charset = charset.encode('ascii')
+
+    base = len(charset)
+
+    if not base == 58:
+        raise ValueError('charset base must be 58, not %s' % base)
 
     pad_len = len(val)
     val = val.lstrip(b'\0')
@@ -80,15 +89,16 @@ def b58encode(val):
         p = p << 8
 
     result = _b58encode_int(acc, default=False)
-    prefix = b'1' * pad_len
+    prefix = bytes([charset[0]]) * pad_len
     return prefix + result
 
 
-def b58decode(val):
+def b58decode(val, charset=DEFAULT_CHARSET):
     """Decode base58check encoded input to original raw bytes.
 
-    :param bytes val: The value to base58cheeck decode
-    :return: the decoded bytes
+    :param bytes val: The value to base58cheeck decode.
+    :param bytes charset: (optional) The character set to use for decoding.
+    :return: the decoded bytes.
     :rtype: bytes
 
     Usage::
@@ -102,14 +112,22 @@ def b58decode(val):
     def _b58decode_int(val):
         output = 0
         for char in val:
-            output = output * BASE + CHARSET.index(char)
+            output = output * base + charset.index(char)
         return output
 
     if isinstance(val, str):
         val = val.encode()
 
+    if isinstance(charset, str):
+        charset = charset.encode()
+
+    base = len(charset)
+
+    if not base == 58:
+        raise ValueError('charset base must be 58, not %s' % base)
+
     pad_len = len(val)
-    val = val.lstrip(b'1')
+    val = val.lstrip(bytes([charset[0]]))
     pad_len -= len(val)
 
     acc = _b58decode_int(val)

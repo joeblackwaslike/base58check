@@ -11,6 +11,7 @@ before_script: pip install pytest
 script: pytest
 
 before_deploy:
+- pip install m2r
 - python3 setup.py sdist bdist_wheel
 
 deploy:

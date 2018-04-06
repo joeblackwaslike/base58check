@@ -29,7 +29,7 @@ Usage::
 :license: MIT, see LICENSE for more details.
 """
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 from hashlib import sha256
